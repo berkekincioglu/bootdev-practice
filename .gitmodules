@@ -1,0 +1,6 @@
+[submodule "git/megacorp"]
+	path = git/megacorp
+	url = https://github.com/berkekincioglu/megacorp.git
+[submodule "git/webflyx"]
+	path = git/webflyx
+	url = https://github.com/berkekincioglu/webflyx.git
