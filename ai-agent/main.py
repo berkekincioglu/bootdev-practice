@@ -1,11 +1,10 @@
 import argparse
-import json
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from call_function import available_functions
+from call_function import available_functions, call_function
 from prompts import system_prompt
 
 
@@ -34,24 +33,30 @@ def main() -> None:
         model="openrouter/free",
         messages=messages,
         tools=available_functions,
+        temperature=0,
     )
 
     if response.usage is None:
         raise RuntimeError("Response is missing usage metadata")
 
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
-
     message = response.choices[0].message
 
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            function_args = json.loads(tool_call.function.arguments or "{}")
-            print(f"Calling function: {tool_call.function.name}({function_args})")
+            # print(f"Calling function: {tool_call.function.name}({function_args})")
+            result_message = call_function(tool_call, verbose=args.verbose)
+
+            if not result_message["content"]:
+                raise Exception("Content should not be empty")
+
     else:
         print(message.content)
+
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Response tokens: {response.usage.completion_tokens}")
+        print(f"-> {result_message['content']}")
 
 
 if __name__ == "__main__":

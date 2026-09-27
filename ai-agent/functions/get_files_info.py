@@ -1,9 +1,9 @@
 import os
 
 
-def get_files_info(working_dir: str, directory: str = ".") -> str:
+def get_files_info(working_directory: str, directory: str = ".") -> str:
     try:
-        working_dir_abs = os.path.abspath(working_dir)
+        working_dir_abs = os.path.abspath(working_directory)
         target_dir = os.path.normpath(os.path.join(working_dir_abs, directory))
         # Will be True or False
         valid_target_dir = (
