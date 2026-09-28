@@ -29,34 +29,40 @@ def main() -> None:
         {"role": "user", "content": args.user_prompt},
     ]
 
-    response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages,
-        tools=available_functions,
-        temperature=0,
-    )
+    for i in range(20):
+        response = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions,
+            temperature=0,
+        )
 
-    if response.usage is None:
-        raise RuntimeError("Response is missing usage metadata")
+        if response.usage is None:
+            raise RuntimeError("Response is missing usage metadata")
 
-    message = response.choices[0].message
+        if args.verbose:
+            # print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
+            # print(f"-> {result_message['content']}")
 
-    if message.tool_calls:
+        message = response.choices[0].message
+        messages.append(message)
+
+        if not message.tool_calls:
+            print("Final response:")
+            print(message.content)
+            break
+
         for tool_call in message.tool_calls:
             # print(f"Calling function: {tool_call.function.name}({function_args})")
             result_message = call_function(tool_call, verbose=args.verbose)
-
             if not result_message["content"]:
                 raise Exception("Content should not be empty")
-
+            messages.append(result_message)
     else:
-        print(message.content)
-
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
-        print(f"-> {result_message['content']}")
+        print("Error: max iterations reached without a final response")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
